@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css')}}"
+    />
+    <script src="{{ url_for('static', filename='js/script.js')}}"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/all.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <title>CRUD con Flask y MongoDB</title>
+  </head>
+  <body>
+    <nav class="navbar is-primary" role="navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item has-text-white" href="#">Flask - MongoDB</a>
+
+        <a
+          role="button"
+          class="navbar-burger"
+          aria-label="menu"
+          aria-expanded="false"
+          data-target="navbarMenu"
+        >
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
+      </div>
+
+      <div id="navbarMenu" class="navbar-menu">
+        <div class="navbar-end">
+          <a class="navbar-item tab-link is-active" data-target="posts">
+            <i class="fa-solid fa-list"></i> Publicaciones
+          </a>
+          <a class="navbar-item tab-link" data-target="new-post">
+            <i class="fa-solid fa-plus"></i> Nueva publicación
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container is-max-desktop mt-5 px-4">
+      <section class="hero is-primary is-small">
+        <div class="hero-body">
+          <p class="title">Lee, escribe y comenta</p>
+        </div>
+      </section>
+
+      <section id="new-post" class="mt-4 tab-content is-hidden">
+        <div class="box">
+          <h2 class="subtitle">Nueva publicación</h2>
+          <form action="/posts" method="POST">
+            <div class="field">
+              <label class="label">Título</label>
+              <div class="control">
+                <input class="input" type="text" name="title" required />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">¿Qué estás pensando?</label>
+              <div class="control">
+                <textarea
+                  class="textarea"
+                  name="content"
+                  rows="4"
+                  required
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Escrito por</label>
+              <div class="control">
+                <input class="input" type="text" name="username" required />
+              </div>
+            </div>
+
+            <button class="button is-success is-fullwidth">Publicar</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="posts" class="mt-4 tab-content">
+        <h2 class="subtitle">Todas las publicaciones</h2>
+        <div class="columns is-multiline">
+          {% for post in posts %}
+          <div class="column is-half">
+            <div class="card">
+              <div class="card-content">
+                <p class="title">{{ post.title }}</p>
+                <p class="content">{{ post.content }}</p>
+                <p class="is-size-7 has-text-grey">
+                  <i class="fa-solid fa-user"></i> {{ post.username }}
+                </p>
+
+                <p class="is-size-7 has-text-grey">
+                  <i class="fa-regular fa-clock"></i> Creado: {{
+                  post.createdAt.strftime('%d/%m/%Y %H:%M') if post.createdAt
+                  else 'Desconocido' }}
+                </p>
+                <p class="is-size-7 has-text-grey">
+                  <i class="fa-solid fa-pen"></i> Última actualización: {{
+                  post.updatedAt.strftime('%d/%m/%Y %H:%M') if post.updatedAt
+                  else 'Nunca' }}
+                </p>
+
+                <div class="comments mt-3">
+                  <h3 class="subtitle is-6">Comentarios</h3>
+                  {% if post.comments %}
+                  <ul>
+                    {% for comment in post.comments %}
+                    <li class="box p-2">
+                      <p class="is-size-7">
+                        <strong>{{ comment.username }}</strong>: {{ comment.text
+                        }}
+                      </p>
+                      <p class="is-size-7 has-text-grey">
+                        <i class="fa-regular fa-clock"></i>
+                        {{ comment.createdAt.strftime('%d/%m/%Y %H:%M') if
+                        comment.createdAt else 'Desconocido' }}
+                      </p>
+
+                      <a
+                        class="button is-small is-info"
+                        onclick="showEditCommentForm('{{ post._id }}', '{{ comment._id }}', '{{ comment.username }}', '{{ comment.text }}')"
+                      >
+                        <i class="fa-solid fa-pen"></i> Editar
+                      </a>
+                      <a
+                        href="{{ url_for('delete_comment', post_id=post['_id'],comment_id=comment._id) }}"
+                        class="button is-small is-danger"
+                      >
+                        <i class="fa-solid fa-trash"></i> Eliminar
+                      </a>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                  {% else %}
+                  <p class="is-size-7 has-text-grey">Sin comentarios</p>
+                  {% endif %}
+                </div>
+              </div>
+
+              <footer class="card-footer">
+                <a
+                  href="{{ url_for('delete_post', post_id=post['_id']) }}"
+                  class="card-footer-item has-text-danger"
+                  >Eliminar</a
+                >
+                <a
+                  href="#"
+                  class="card-footer-item has-text-info"
+                  onclick="showEditForm('{{ post._id }}', '{{ post.title }}', '{{ post.content }}', '{{ post.username }}')"
+                  >Editar</a
+                >
+                <a
+                  href="#"
+                  class="card-footer-item has-text-primary"
+                  onclick="showCommentForm('{{ post._id }}')"
+                  >Comentar</a
+                >
+              </footer>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+    </main>
+
+    <div id="edit-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Editar Publicación</p>
+          <button
+            class="delete"
+            aria-label="close"
+            onclick="closeEditForm()"
+          ></button>
+        </header>
+
+        <form id="edit-form" method="POST">
+          <section class="modal-card-body">
+            <div class="field">
+              <label class="label">Título</label>
+              <div class="control">
+                <input
+                  class="input"
+                  type="text"
+                  id="edit-title"
+                  name="title"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">¿Qué estás pensando?</label>
+              <div class="control">
+                <textarea
+                  class="textarea"
+                  id="edit-content"
+                  name="content"
+                  rows="4"
+                  required
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Escrito por</label>
+              <div class="control">
+                <input
+                  class="input"
+                  type="text"
+                  id="edit-username"
+                  name="username"
+                  required
+                />
+              </div>
+            </div>
+          </section>
+
+          <footer class="modal-card-foot">
+            <div class="buttons">
+              <button class="button is-success">Guardar cambios</button>
+              <button type="button" class="button" onclick="closeEditForm()">
+                Cancelar
+              </button>
+            </div>
+          </footer>
+        </form>
+      </div>
+    </div>
+
+    <div id="commentModal" class="modal">
+      <div class="modal-background" onclick="closeCommentModal()"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Agregar Comentario</p>
+          <button
+            class="delete"
+            aria-label="close"
+            onclick="closeCommentModal()"
+          ></button>
+        </header>
+        <section class="modal-card-body">
+          <form id="commentForm" method="POST" action="/posts/comment">
+            <input type="hidden" id="commentPostId" name="post_id" />
+            <div class="field">
+              <label class="label">Nombre de usuario</label>
+              <div class="control">
+                <input
+                  class="input"
+                  type="text"
+                  name="username"
+                  placeholder="Tu nombre"
+                  required
+                />
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Comentario</label>
+              <div class="control">
+                <textarea
+                  class="textarea"
+                  name="text"
+                  placeholder="Escribe tu comentario"
+                  required
+                ></textarea>
+              </div>
+            </div>
+            <footer class="modal-card-foot">
+              <div class="buttons">
+                <button type="submit" class="button is-primary">Enviar</button>
+                <button
+                  type="button"
+                  class="button"
+                  onclick="closeCommentModal()"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </footer>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <div id="editCommentModal" class="modal">
+      <div class="modal-background" onclick="closeEditCommentModal()"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Editar Comentario</p>
+          <button
+            class="delete"
+            aria-label="close"
+            onclick="closeEditCommentModal()"
+          ></button>
+        </header>
+        <section class="modal-card-body">
+          <form id="editCommentForm" method="POST" action="/posts/comment/edit">
+            <input type="hidden" id="editCommentPostId" name="post_id" />
+            <input type="hidden" id="editCommentId" name="comment_id" />
+            <div class="field">
+              <label class="label">Nombre de usuario</label>
+              <div class="control">
+                <input
+                  class="input"
+                  type="text"
+                  name="username"
+                  id="editCommentUsername"
+                  required
+                  readonly
+                />
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Comentario</label>
+              <div class="control">
+                <textarea
+                  class="textarea"
+                  name="text"
+                  id="editCommentText"
+                  required
+                ></textarea>
+              </div>
+            </div>
+            <footer class="modal-card-foot">
+              <button type="submit" class="button is-primary">Guardar</button>
+              <button
+                type="button"
+                class="button"
+                onclick="closeEditCommentModal()"
+              >
+                Cancelar
+              </button>
+            </footer>
+          </form>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>

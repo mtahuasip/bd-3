@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css')}}"
+    />
+    <script src="{{ url_for('static', filename='js/script.js')}}"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/all.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <title>CRUD con Flask y MongoDB</title>
+  </head>
+  <body>
+    <nav class="navbar is-primary" role="navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item has-text-white" href="#">Flask - MongoDB</a>
+
+        <a
+          role="button"
+          class="navbar-burger"
+          aria-label="menu"
+          aria-expanded="false"
+          data-target="navbarMenu"
+        >
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
+      </div>
+
+      <div id="navbarMenu" class="navbar-menu">
+        <div class="navbar-end">
+          <a class="navbar-item tab-link is-active" data-target="posts">
+            <i class="fa-solid fa-list"></i> Bibliotecas
+          </a>
+          <a class="navbar-item tab-link" data-target="new-post">
+            <i class="fa-solid fa-plus"></i> Nueva biblioteca
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container is-max-desktop mt-5 px-4">
+      <section class="hero is-primary is-small">
+        <div class="hero-body">
+          <p class="title">Bibliotecas</p>
+        </div>
+      </section>
+
+      <section id="new-post" class="mt-4 tab-content is-hidden">
+        <div class="box">
+          <h2 class="subtitle">Nueva biblioteca</h2>
+          <form action="/libs" method="POST">
+            <div class="field">
+              <label class="label">Carrera</label>
+              <div class="control">
+                <input class="input" type="text" name="carrera" required />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Facultad</label>
+              <div class="control">
+                <input class="input" type="text" name="facultad" required />
+              </div>
+            </div>
+
+            <button class="button is-success is-fullwidth">Guardar</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="posts" class="mt-4 tab-content">
+        <h2 class="subtitle">Lista de bibliotecas</h2>
+        <div class="columns is-multiline">
+          {% for lib in libsList %}
+          <div class="card">
+            <div class="card-content">
+              <p class="title">{{lib.carrera}}</p>
+              <p class="content">{{ lib.facultad }}</p>
+
+              <p class="is-size-7 has-text-grey">
+                <i class="fa-regular fa-clock"></i> Creado: {{
+                lib.createdAt.strftime('%d/%m/%Y %H:%M') if lib.createdAt else
+                'Desconocido' }}
+              </p>
+              <p class="is-size-7 has-text-grey">
+                <i class="fa-solid fa-pen"></i> Última actualización: {{
+                lib.updatedAt.strftime('%d/%m/%Y %H:%M') if lib.updatedAt else
+                'Nunca' }}
+              </p>
+            </div>
+
+            <footer class="card-footer">
+              <a
+                href="{{ url_for('delete_lib', lib_id=lib['_id']) }}"
+                class="card-footer-item has-text-danger"
+                >Eliminar</a
+              >
+              <a
+                href="#"
+                class="card-footer-item has-text-info"
+                onclick="showEditForm('{{ lib._id }}', '{{ lib.carrera }}', '{{ lib.facultad }}')"
+                >Editar</a
+              >
+            </footer>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+    </main>
+
+    <div id="edit-modal" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">Editar biblioteca</p>
+          <button
+            class="delete"
+            aria-label="close"
+            onclick="closeEditForm()"
+          ></button>
+        </header>
+
+        <form id="edit-form" method="POST">
+          <section class="modal-card-body">
+            <div class="field">
+              <label class="label">Carrea</label>
+              <div class="control">
+                <input
+                  class="input"
+                  type="text"
+                  id="edit-carrera"
+                  name="carrera"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Facultad</label>
+              <div class="control">
+                <input
+                  class="input"
+                  type="text"
+                  id="edit-facultad"
+                  name="facultad"
+                  required
+                />
+              </div>
+            </div>
+          </section>
+
+          <footer class="modal-card-foot">
+            <div class="buttons">
+              <button class="button is-success">Guardar cambios</button>
+              <button type="button" class="button" onclick="closeEditForm()">
+                Cancelar
+              </button>
+            </div>
+          </footer>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

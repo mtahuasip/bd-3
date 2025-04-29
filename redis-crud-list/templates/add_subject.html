@@ -1,0 +1,23 @@
+{% extends 'base.html' %} {% block title %} Agregar materia {% endblock %} {%
+block content %}
+<div class="card shadow-sm p-4">
+  <h1 class="h4 mb-3">Agregar Materia</h1>
+  <form method="POST">
+    <div class="mb-3">
+      <label class="form-label" for="subject">Nombre de la materia</label>
+      <input
+        class="form-control"
+        type="text"
+        name="subject"
+        id="subject"
+        placeholder="Ej. Matemáticas"
+        required
+      />
+    </div>
+    <a class="btn btn-secondary" href="{{ url_for('index') }}" role="button">
+      Volver
+    </a>
+    <button class="btn btn-primary" type="submit">Agregar</button>
+  </form>
+</div>
+{% endblock %}
